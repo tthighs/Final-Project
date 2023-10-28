@@ -1,0 +1,45 @@
+import discord
+from discord.ext import commands
+from discord import Interaction, interactions
+
+admin_perm = [-User ID-]
+
+client = commands.Bot(command_prefix=".", intents= discord.Intents.all())
+
+@client.event
+async def on_ready():
+  print(f"{client.user.name} is logging in.")
+  await client.tree.sync()
+  await client.change_presence(activity=discord.activity.Game(name="vroom"), 
+                               status=discord.Status.do_not_disturb)
+
+@client.command()
+async def hello(ctx):
+  if ctx.author.id not in admin_perm:
+    await ctx.send("You aren't allowed to run this command.")
+    return
+  await ctx.send("Hello there!")
+
+@client.command()
+async def ban(ctx, member: discord.Member, *, reason: str):
+  if ctx.author.id not in admin_perm:
+    await ctx.send("You're not allowed to run this command.")
+    return
+  await member.ban(reason=reason)
+  embed = discord.Embed(title="Member Banned!", color=0xFF0000)
+  embed.add_field(name="Banned Member:", value=member.mention, inline=False)
+  embed.add_field(name="Banned By:", value=ctx.author.mention, inline=False)
+  embed.add_field(name="Reason:", value=reason, inline=False)
+  embed.set_footer(text="Brayden")
+  await ctx.send(embed=embed)
+
+@client.tree.command(name="ping", description="it will show the ping!")
+async def ping(interaction : Interaction):
+  bot_latency = round(client.latency*1000)
+  await interaction.response.send_message(f"Ping!... {bot_latency}ms")
+  
+
+intents = discord.Intents.all()
+intents.message_content = True
+
+client.run('-Token-')
